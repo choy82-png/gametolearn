@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>探索太阳系 - 三年级科学互动游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        .planet-orbit {
+            animation: orbit 10s linear infinite;
+        }
+        
+        @keyframes orbit {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .bounce {
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        .draggable {
+            cursor: move;
+            transition: transform 0.2s;
+        }
+        
+        .draggable:hover {
+            transform: scale(1.05);
+        }
+        
+        .drop-zone {
+            border: 2px dashed #60a5fa;
+            transition: all 0.3s;
+        }
+        
+        .drop-zone.drag-over {
+            background-color: #dbeafe;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-purple-900 via-blue-900 to-black min-h-screen text-white overflow-x-hidden">
+    <!-- Stars Background -->
+    <div id="stars-container" class="fixed inset-0 pointer-events-none"></div>
+    
+    <!-- Welcome Page -->
+    <div id="welcome-page" class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="text-center max-w-4xl mx-auto">
+            <!-- Animated Astronaut -->
+            <div class="mb-8 bounce">
+                <svg width="120" height="120" viewBox="0 0 120 120" class="mx-auto">
+                    <circle cx="60" cy="45" r="25" fill="#f3f4f6" stroke="#374151" stroke-width="2"/>
+                    <circle cx="55" cy="40" r="3" fill="#1f2937"/>
+                    <circle cx="65" cy="40" r="3" fill="#1f2937"/>
+                    <path d="M55 50 Q60 55 65 50" stroke="#1f2937" stroke-width="2" fill="none"/>
+                    <rect x="45" y="70" width="30" height="40" rx="5" fill="#ef4444"/>
+                    <rect x="35" y="75" width="15" height="25" rx="3" fill="#ef4444"/>
+                    <rect x="70" y="75" width="15" height="25" rx="3" fill="#ef4444"/>
+                    <rect x="50" y="110" width="8" height="15" rx="2" fill="#374151"/>
+                    <rect x="62" y="110" width="8" height="15" rx="2" fill="#374151"/>
+                </svg>
+            </div>
+            
+            <h1 class="text-6xl font-bold mb-4 text-yellow-300">🚀 探索太阳系 🌟</h1>
+            <p class="text-2xl mb-8 text-blue-200">一起来探索太阳系的秘密吧！</p>
+            
+            <!-- Orbiting Planets -->
+            <div class="relative w-64 h-64 mx-auto mb-8">
+                <div class="absolute inset-0 planet-orbit">
+                    <div class="w-4 h-4 bg-red-500 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2"></div>
+                </div>
+                <div class="absolute inset-4 planet-orbit" style="animation-duration: 8s;">
+                    <div class="w-3 h-3 bg-orange-400 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2"></div>
+                </div>
+                <div class="absolute inset-8 planet-orbit" style="animation-duration: 12s;">
+                    <div class="w-4 h-4 bg-blue-500 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2"></div>
+                </div>
+                <div class="w-16 h-16 bg-yellow-400 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+            </div>
+            
+            <button onclick="showLoginPage()" class="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-bold py-4 px-8 rounded-full text-xl transform hover:scale-105 transition-all duration-200 shadow-lg">
+                🎮 开始游戏
+            </button>
+        </div>
+    </div>
+    
+    <!-- Login Page -->
+    <div id="login-page" class="min-h-screen flex flex-col items-center justify-center p-4 hidden">
+        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 max-w-md w-full text-center">
+            <h2 class="text-3xl font-bold mb-6 text-yellow-300">🌟 小宇航员登录</h2>
+            
+            <div class="mb-6">
+                <svg width="80" height="80" viewBox="0 0 80 80" class="mx-auto mb-4">
+                    <circle cx="40" cy="30" r="15" fill="#f3f4f6" stroke="#374151" stroke-width="2"/>
+                    <circle cx="37" cy="27" r="2" fill="#1f2937"/>
+                    <circle cx="43" cy="27" r="2" fill="#1f2937"/>
+                    <path d="M37 33 Q40 36 43 33" stroke="#1f2937" stroke-width="2" fill="none"/>
+                    <rect x="30" y="45" width="20" height="25" rx="3" fill="#3b82f6"/>
+                    <rect x="25" y="48" width="10" height="15" rx="2" fill="#3b82f6"/>
+                    <rect x="45" y="48" width="10" height="15" rx="2" fill="#3b82f6"/>
+                </svg>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-left mb-2 font-semibold">👤 你的姓名：</label>
+                <input type="text" id="student-name" class="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/70" placeholder="请输入你的姓名">
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-left mb-2 font-semibold">🏫 你的班级：</label>
+                <input type="text" id="student-class" class="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/70" placeholder="例如：三年级1班">
+            </div>
+            
+            <button onclick="startGame()" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-6 rounded-lg text-lg transform hover:scale-105 transition-all duration-200">
+                🚀 进入太空探索
+            </button>
+        </div>
+    </div>
+    
+    <!-- Game Page -->
+    <div id="game-page" class="min-h-screen p-4 hidden">
+        <!-- Game Header -->
+        <div class="flex justify-between items-center mb-6 bg-white/10 backdrop-blur-md rounded-2xl p-4">
+            <div class="flex items-center space-x-4">
+                <span class="text-xl font-bold">🌟 <span id="current-student-name"></span></span>
+                <span class="text-lg">📚 <span id="current-student-class"></span></span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-xl font-bold">题目 <span id="question-counter">1</span>/10</span>
+                <span class="text-xl font-bold">⭐ 得分: <span id="current-score">0</span></span>
+            </div>
+        </div>
+        
+        <!-- Question Container -->
+        <div id="question-container" class="max-w-4xl mx-auto bg-white/10 backdrop-blur-md rounded-3xl p-8">
+            <!-- Question content will be inserted here -->
+        </div>
+        
+        <!-- Navigation -->
+        <div class="flex justify-center mt-6">
+            <button id="next-button" onclick="nextQuestion()" class="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg transform hover:scale-105 transition-all duration-200 hidden">
+                下一题 ➡️
+            </button>
+        </div>
+    </div>
+    
+    <!-- Results Page -->
+    <div id="results-page" class="min-h-screen flex flex-col items-center justify-center p-4 hidden">
+        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 max-w-2xl w-full text-center">
+            <h2 class="text-4xl font-bold mb-6 text-yellow-300">🎉 游戏完成！</h2>
+            
+            <div class="mb-6">
+                <div class="text-2xl mb-2">🌟 <span id="final-student-name"></span></div>
+                <div class="text-xl mb-4">📚 <span id="final-student-class"></span></div>
+                <div class="text-6xl font-bold mb-4 text-yellow-400" id="final-score">0</div>
+                <div class="text-2xl mb-4" id="star-rating">⭐⭐⭐⭐⭐</div>
+                <div class="text-xl text-green-300 font-bold" id="praise-text">你是小小太空专家！</div>
+            </div>
+            
+            <!-- Solar System Illustration -->
+            <div class="relative w-80 h-40 mx-auto mb-6 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl overflow-hidden">
+                <div class="absolute top-1/2 left-8 w-8 h-8 bg-yellow-400 rounded-full transform -translate-y-1/2"></div>
+                <div class="absolute top-1/2 left-20 w-2 h-2 bg-gray-400 rounded-full transform -translate-y-1/2"></div>
+                <div class="absolute top-1/2 left-28 w-3 h-3 bg-orange-400 rounded-full transform -translate-y-1/2"></div>
+                <div class="absolute top-1/2 left-36 w-3 h-3 bg-blue-500 rounded-full transform -translate-y-1/2"></div>
+                <div class="absolute top-1/2 left-44 w-2 h-2 bg-red-500 rounded-full transform -translate-y-1/2"></div>
+                <div class="absolute top-1/2 left-52 w-4 h-4 bg-orange-300 rounded-full transform -translate-y-1/2"></div>
+                <div class="absolute top-1/2 left-60 w-4 h-4 bg-yellow-200 rounded-full transform -translate-y-1/2"></div>
+                <div class="absolute top-1/2 left-68 w-3 h-3 bg-blue-300 rounded-full transform -translate-y-1/2"></div>
+                <div class="absolute top-1/2 left-76 w-3 h-3 bg-blue-600 rounded-full transform -translate-y-1/2"></div>
+            </div>
+            
+            <div class="flex justify-center space-x-4">
+                <button onclick="downloadScoreCard()" class="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-full text-lg transform hover:scale-105 transition-all duration-200">
+                    📥 下载分数卡
+                </button>
+                <button onclick="restartGame()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-6 rounded-full text-lg transform hover:scale-105 transition-all duration-200">
+                    🔄 重新游戏
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let currentQuestion = 0;
+        let score = 0;
+        let studentName = '';
+        let studentClass = '';
+        let gameQuestions = [];
+        let currentAudio = null;
+        
+        // Question bank with different types and difficulty levels
+        const questionBank = [
+            // Easy questions (记忆、理解) - 50%
+            {
+                type: 'multiple-choice',
+                difficulty: 'easy',
+                question: '太阳系中最大的行星是哪一颗？',
+                image: '🪐',
+                options: ['木星', '土星', '地球', '火星'],
+                correct: 0,
+                explanation: '木星是太阳系中最大的行星！'
+            },
+            {
+                type: 'multiple-choice',
+                difficulty: 'easy',
+                question: '地球是太阳系中第几颗行星？',
+                image: '🌍',
+                options: ['第二颗', '第三颗', '第四颗', '第五颗'],
+                correct: 1,
+                explanation: '地球是距离太阳第三近的行星！'
+            },
+            {
+                type: 'multiple-choice',
+                difficulty: 'easy',
+                question: '太阳系的中心是什么？',
+                image: '☀️',
+                options: ['月亮', '地球', '太阳', '木星'],
+                correct: 2,
+                explanation: '太阳是太阳系的中心，所有行星都围绕它转！'
+            },
+            {
+                type: 'multiple-choice',
+                difficulty: 'easy',
+                question: '哪颗行星被称为"红色星球"？',
+                image: '🔴',
+                options: ['金星', '火星', '木星', '土星'],
+                correct: 1,
+                explanation: '火星因为表面的红色而被称为红色星球！'
+            },
+            {
+                type: 'multiple-choice',
+                difficulty: 'easy',
+                question: '太阳系中有多少颗行星？',
+                image: '🌌',
+                options: ['7颗', '8颗', '9颗', '10颗'],
+                correct: 1,
+                explanation: '太阳系有8颗行星！'
+            },
+            {
+                type: 'matching',
+                difficulty: 'easy',
+                question: '请将行星与它们的特征配对',
+                pairs: [
+                    { planet: '地球 🌍', feature: '有生命' },
+                    { planet: '土星 🪐', feature: '有光环' },
+                    { planet: '火星 🔴', feature: '红色的' },
+                    { planet: '木星 🟤', feature: '最大的' }
+                ]
+            },
+            {
+                type: 'drag-sort',
+                difficulty: 'easy',
+                question: '请按照距离太阳从近到远的顺序排列这些行星',
+                image: '☀️➡️',
+                items: ['水星', '金星', '地球', '火星'],
+                correct: ['水星', '金星', '地球', '火星']
+            },
+            {
+                type: 'multiple-choice',
+                difficulty: 'easy',
+                question: '距离太阳最近的行星是？',
+                image: '☀️',
+                options: ['金星', '水星', '地球', '火星'],
+                correct: 1,
+                explanation: '水星是距离太阳最近的行星！'
+            },
+            {
+                type: 'multiple-choice',
+                difficulty: 'easy',
+                question: '哪颗行星有美丽的光环？',
+                image: '💍',
+                options: ['木星', '土星', '天王星', '海王星'],
+                correct: 1,
+                explanation: '土星有最明显美丽的光环！'
+            },
+            {
+                type: 'multiple-choice',
+                difficulty: 'easy',
+                question: '月亮围绕哪颗行星转？',
+                image: '🌙',
+                options: ['太阳', '火星', '地球', '金星'],
+                correct: 2,
+                explanation: '月亮是地球的卫星，围绕地球转！'
+            },
+            
+            // Medium questions (应用、分析) - 30%
+            {
+                type: 'multiple-choice',
+                difficulty: 'medium',
+                question: '为什么水星的温度变化很大？',
+                image: '🌡️',
+                options: ['距离太阳很近', '没有大气层保温', '自转很慢', '以上都是'],
+                correct: 3,
+                explanation: '水星距离太阳近、没有大气层、自转慢，所以温度变化很大！'
+            },
+            {
+                type: 'drag-sort',
+                difficulty: 'medium',
+                question: '请按照行星大小从大到小排列',
+                image: '📏',
+                items: ['木星', '土星', '海王星', '地球'],
+                correct: ['木星', '土星', '海王星', '地球']
+            },
+            {
+                type: 'multiple-choice',
+                difficulty: 'medium',
+                question: '如果你在火星上，看到的太阳会比在地球上看到的？',
+                image: '👀',
+                options: ['更大更亮', '更小更暗', '一样大小', '看不到太阳'],
+                correct: 1,
+                explanation: '火星距离太阳更远，所以太阳看起来更小更暗！'
+            },
+            {
+                type: 'multiple-choice',
+                difficulty: 'medium',
+                question: '为什么外层行星（木星、土星等）比内层行星大？',
+                image: '🧊',
+                options: ['距离太阳远，温度低', '能保存更多气体', '形成时间更长', '前两个都对'],
+                correct: 3,
+                explanation: '外层行星距离太阳远，温度低，能保存更多气体，所以更大！'
+            },
+            {
+                type: 'matching',
+                difficulty: 'medium',
+                question: '请将行星与它们的温度特征配对',
+                pairs: [
+                    { planet: '水星 ☀️', feature: '白天很热，夜晚很冷' },
+                    { planet: '金星 🔥', feature: '最热的行星' },
+                    { planet: '地球 🌡️', feature: '温度适中' },
+                    { planet: '海王星 ❄️', feature: '非常寒冷' }
+                ]
+            },
+            {
+                type: 'short-answer',
+                difficulty: 'medium',
+                question: '请说出三个让地球适合生命生存的条件',
+                image: '🌍',
+                keywords: ['水', '氧气', '温度', '大气', '距离', '太阳']
+            },
+            
+            // Hard questions (创造、评价) - 20%
+            {
+                type: 'short-answer',
+                difficulty: 'hard',
+                question: '如果你要设计一个太空站，你会选择在哪颗行星附近？为什么？',
+                image: '🛰️',
+                keywords: ['地球', '火星', '月球', '距离', '资源', '温度', '安全']
+            },
+            {
+                type: 'multiple-choice',
+                difficulty: 'hard',
+                question: '科学家为什么认为火星可能曾经有生命？',
+                image: '🔬',
+                options: ['发现了水的痕迹', '温度曾经适宜', '有大气层', '以上都是'],
+                correct: 3,
+                explanation: '火星有水的痕迹、曾经温度适宜、有大气层，所以可能有过生命！'
+            },
+            {
+                type: 'short-answer',
+                difficulty: 'hard',
+                question: '请创造性地描述你想象中的外星生物会是什么样子的',
+                image: '👽',
+                keywords: ['想象', '创意', '外星', '生物', '特征']
+            },
+            {
+                type: 'multiple-choice',
+                difficulty: 'hard',
+                question: '如果地球距离太阳更近一些，会发生什么？',
+                image: '🌡️',
+                options: ['会更冷', '会更热，可能没有生命', '没有变化', '会有更多水'],
+                correct: 1,
+                explanation: '如果地球距离太阳更近，会太热，水会蒸发，可能没有生命！'
+            }
+        ];
+        
+        // Initialize stars
+        function createStars() {
+            const container = document.getElementById('stars-container');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(star);
+            }
+        }
+        
+        // Text-to-speech function
+        function speakText(text) {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.8;
+                utterance.pitch = 1.2;
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // Show login page
+        function showLoginPage() {
+            document.getElementById('welcome-page').classList.add('hidden');
+            document.getElementById('login-page').classList.remove('hidden');
+        }
+        
+        // Start game
+        function startGame() {
+            const name = document.getElementById('student-name').value.trim();
+            const className = document.getElementById('student-class').value.trim();
+            
+            if (!name || !className) {
+                alert('请输入你的姓名和班级！');
+                return;
+            }
+            
+            studentName = name;
+            studentClass = className;
+            
+            document.getElementById('current-student-name').textContent = name;
+            document.getElementById('current-student-class').textContent = className;
+            
+            // Select random questions
+            gameQuestions = selectRandomQuestions();
+            currentQuestion = 0;
+            score = 0;
+            
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('game-page').classList.remove('hidden');
+            
+            showQuestion();
+        }
+        
+        // Select random questions with difficulty distribution
+        function selectRandomQuestions() {
+            const easy = questionBank.filter(q => q.difficulty === 'easy');
+            const medium = questionBank.filter(q => q.difficulty === 'medium');
+            const hard = questionBank.filter(q => q.difficulty === 'hard');
+            
+            const selected = [];
+            
+            // 50% easy (5 questions)
+            for (let i = 0; i < 5; i++) {
+                const randomIndex = Math.floor(Math.random() * easy.length);
+                selected.push(easy[randomIndex]);
+                easy.splice(randomIndex, 1);
+            }
+            
+            // 30% medium (3 questions)
+            for (let i = 0; i < 3; i++) {
+                const randomIndex = Math.floor(Math.random() * medium.length);
+                selected.push(medium[randomIndex]);
+                medium.splice(randomIndex, 1);
+            }
+            
+            // 20% hard (2 questions)
+            for (let i = 0; i < 2; i++) {
+                const randomIndex = Math.floor(Math.random() * hard.length);
+                selected.push(hard[randomIndex]);
+                hard.splice(randomIndex, 1);
+            }
+            
+            // Shuffle the selected questions
+            return selected.sort(() => Math.random() - 0.5);
+        }
+        
+        // Show current question
+        function showQuestion() {
+            const question = gameQuestions[currentQuestion];
+            const container = document.getElementById('question-container');
+            
+            document.getElementById('question-counter').textContent = currentQuestion + 1;
+            document.getElementById('next-button').classList.add('hidden');
+            
+            let html = `
+                <div class="text-center mb-6">
+                    <div class="text-6xl mb-4">${question.image || '🌌'}</div>
+                    <h3 class="text-2xl font-bold mb-4">${question.question}</h3>
+                    <button onclick="speakText('${question.question}')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full mb-4">
+                        🔊 听题目
+                    </button>
+                </div>
+            `;
+            
+            if (question.type === 'multiple-choice') {
+                html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                question.options.forEach((option, index) => {
+                    html += `
+                        <button onclick="selectAnswer(${index})" class="option-btn bg-white/20 hover:bg-white/30 text-white font-bold py-4 px-6 rounded-xl text-lg transition-all duration-200 transform hover:scale-105">
+                            ${String.fromCharCode(65 + index)}. ${option}
+                        </button>
+                    `;
+                });
+                html += '</div>';
+            } else if (question.type === 'drag-sort') {
+                html += `
+                    <div class="mb-6">
+                        <p class="text-lg mb-4">拖拽下面的选项到正确位置：</p>
+                        <div id="drag-items" class="flex flex-wrap justify-center gap-4 mb-6">
+                `;
+                const shuffled = [...question.items].sort(() => Math.random() - 0.5);
+                shuffled.forEach((item, index) => {
+                    html += `
+                        <div class="draggable bg-yellow-400 text-black font-bold py-2 px-4 rounded-lg cursor-move" draggable="true" data-item="${item}">
+                            ${item}
+                        </div>
+                    `;
+                });
+                html += `
+                        </div>
+                        <div id="drop-zones" class="space-y-2">
+                `;
+                question.items.forEach((_, index) => {
+                    html += `
+                        <div class="drop-zone bg-white/10 border-2 border-dashed border-blue-400 rounded-lg p-4 min-h-12 flex items-center justify-center" data-position="${index}">
+                            位置 ${index + 1}
+                        </div>
+                    `;
+                });
+                html += `
+                        </div>
+                        <button onclick="checkDragSort()" class="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full">
+                            检查答案
+                        </button>
+                    </div>
+                `;
+            } else if (question.type === 'matching') {
+                html += `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="text-xl font-bold mb-4">行星</h4>
+                            <div class="space-y-2">
+                `;
+                question.pairs.forEach((pair, index) => {
+                    html += `
+                        <div class="match-item bg-blue-500 text-white font-bold py-2 px-4 rounded-lg cursor-pointer" data-type="planet" data-index="${index}">
+                            ${pair.planet}
+                        </div>
+                    `;
+                });
+                html += `
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold mb-4">特征</h4>
+                            <div class="space-y-2">
+                `;
+                const shuffledFeatures = [...question.pairs].sort(() => Math.random() - 0.5);
+                shuffledFeatures.forEach((pair, index) => {
+                    const originalIndex = question.pairs.findIndex(p => p.feature === pair.feature);
+                    html += `
+                        <div class="match-item bg-green-500 text-white font-bold py-2 px-4 rounded-lg cursor-pointer" data-type="feature" data-index="${originalIndex}">
+                            ${pair.feature}
+                        </div>
+                    `;
+                });
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                    <div id="matches" class="mt-6"></div>
+                    <button onclick="checkMatching()" class="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full">
+                        检查答案
+                    </button>
+                `;
+            } else if (question.type === 'short-answer') {
+                html += `
+                    <div class="max-w-2xl mx-auto">
+                        <textarea id="short-answer" class="w-full h-32 p-4 rounded-lg bg-white/20 border border-white/30 text-white placeholder-white/70 resize-none" placeholder="请在这里输入你的答案..."></textarea>
+                        <div class="mt-4 flex justify-center space-x-4">
+                            <button onclick="checkShortAnswer()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full">
+                                提交答案
+                            </button>
+                            <button onclick="speakText('请说出你的答案')" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-full">
+                                🎤 语音回答
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+            
+            // Add drag and drop functionality
+            if (question.type === 'drag-sort') {
+                setupDragAndDrop();
+            }
+            
+            // Add matching functionality
+            if (question.type === 'matching') {
+                setupMatching();
+            }
+        }
+        
+        // Select answer for multiple choice
+        function selectAnswer(selectedIndex) {
+            const question = gameQuestions[currentQuestion];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === selectedIndex) {
+                    if (index === question.correct) {
+                        btn.classList.add('bg-green-500');
+                        score++;
+                        document.getElementById('current-score').textContent = score;
+                    } else {
+                        btn.classList.add('bg-red-500');
+                    }
+                } else if (index === question.correct) {
+                    btn.classList.add('bg-green-500');
+                }
+            });
+            
+            // Show explanation
+            setTimeout(() => {
+                const container = document.getElementById('question-container');
+                container.innerHTML += `
+                    <div class="mt-6 p-4 bg-blue-500/30 rounded-lg">
+                        <p class="text-lg font-bold">💡 ${question.explanation}</p>
+                    </div>
+                `;
+                document.getElementById('next-button').classList.remove('hidden');
+            }, 1000);
+        }
+        
+        // Setup drag and drop
+        function setupDragAndDrop() {
+            const draggables = document.querySelectorAll('.draggable');
+            const dropZones = document.querySelectorAll('.drop-zone');
+            
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.item);
+                });
+            });
+            
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+                
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('drag-over');
+                });
+                
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const item = e.dataTransfer.getData('text/plain');
+                    zone.textContent = item;
+                    zone.classList.remove('drag-over');
+                    zone.classList.add('bg-blue-500/30');
+                });
+            });
+        }
+        
+        // Check drag sort answer
+        function checkDragSort() {
+            const question = gameQuestions[currentQuestion];
+            const dropZones = document.querySelectorAll('.drop-zone');
+            const userAnswer = Array.from(dropZones).map(zone => zone.textContent.trim());
+            
+            let correct = true;
+            dropZones.forEach((zone, index) => {
+                if (userAnswer[index] === question.correct[index]) {
+                    zone.classList.add('bg-green-500/50');
+                } else {
+                    zone.classList.add('bg-red-500/50');
+                    correct = false;
+                }
+            });
+            
+            if (correct) {
+                score++;
+                document.getElementById('current-score').textContent = score;
+            }
+            
+            setTimeout(() => {
+                document.getElementById('next-button').classList.remove('hidden');
+            }, 1000);
+        }
+        
+        // Setup matching
+        let selectedMatches = [];
+        function setupMatching() {
+            const matchItems = document.querySelectorAll('.match-item');
+            
+            matchItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    if (selectedMatches.length < 2 && !selectedMatches.includes(item)) {
+                        item.classList.add('ring-4', 'ring-yellow-400');
+                        selectedMatches.push(item);
+                        
+                        if (selectedMatches.length === 2) {
+                            const [first, second] = selectedMatches;
+                            if (first.dataset.index === second.dataset.index) {
+                                // Correct match
+                                first.classList.remove('ring-4', 'ring-yellow-400');
+                                second.classList.remove('ring-4', 'ring-yellow-400');
+                                first.classList.add('bg-green-600');
+                                second.classList.add('bg-green-600');
+                                
+                                const matchesDiv = document.getElementById('matches');
+                                matchesDiv.innerHTML += `
+                                    <div class="bg-green-500/30 p-2 rounded-lg mb-2">
+                                        ✅ ${first.textContent} ↔ ${second.textContent}
+                                    </div>
+                                `;
+                            } else {
+                                // Incorrect match
+                                setTimeout(() => {
+                                    first.classList.remove('ring-4', 'ring-yellow-400');
+                                    second.classList.remove('ring-4', 'ring-yellow-400');
+                                }, 1000);
+                            }
+                            selectedMatches = [];
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Check matching
+        function checkMatching() {
+            const correctMatches = document.querySelectorAll('.bg-green-600').length / 2;
+            const totalPairs = gameQuestions[currentQuestion].pairs.length;
+            
+            if (correctMatches === totalPairs) {
+                score++;
+                document.getElementById('current-score').textContent = score;
+            }
+            
+            document.getElementById('next-button').classList.remove('hidden');
+        }
+        
+        // Check short answer
+        function checkShortAnswer() {
+            const answer = document.getElementById('short-answer').value.trim().toLowerCase();
+            const question = gameQuestions[currentQuestion];
+            
+            let hasKeyword = false;
+            question.keywords.forEach(keyword => {
+                if (answer.includes(keyword.toLowerCase())) {
+                    hasKeyword = true;
+                }
+            });
+            
+            if (hasKeyword && answer.length > 10) {
+                score++;
+                document.getElementById('current-score').textContent = score;
+                
+                const container = document.getElementById('question-container');
+                container.innerHTML += `
+                    <div class="mt-6 p-4 bg-green-500/30 rounded-lg">
+                        <p class="text-lg font-bold">🎉 很好的回答！你的想法很棒！</p>
+                    </div>
+                `;
+            } else {
+                const container = document.getElementById('question-container');
+                container.innerHTML += `
+                    <div class="mt-6 p-4 bg-blue-500/30 rounded-lg">
+                        <p class="text-lg font-bold">💭 不错的尝试！继续思考和探索！</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('next-button').classList.remove('hidden');
+        }
+        
+        // Next question
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion < gameQuestions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+        
+        // Show results
+        function showResults() {
+            document.getElementById('game-page').classList.add('hidden');
+            document.getElementById('results-page').classList.remove('hidden');
+            
+            document.getElementById('final-student-name').textContent = studentName;
+            document.getElementById('final-student-class').textContent = studentClass;
+            document.getElementById('final-score').textContent = score + '/10';
+            
+            // Calculate stars
+            let stars = '';
+            if (score >= 9) stars = '⭐⭐⭐⭐⭐';
+            else if (score >= 7) stars = '⭐⭐⭐⭐☆';
+            else if (score >= 5) stars = '⭐⭐⭐☆☆';
+            else if (score >= 3) stars = '⭐⭐☆☆☆';
+            else stars = '⭐☆☆☆☆';
+            
+            document.getElementById('star-rating').textContent = stars;
+            
+            // Praise text
+            let praise = '';
+            if (score >= 9) praise = '你是超级太空专家！🚀';
+            else if (score >= 7) praise = '你是小小太空专家！🌟';
+            else if (score >= 5) praise = '你对太阳系很了解！🌍';
+            else if (score >= 3) praise = '继续探索太空的奥秘！🔭';
+            else praise = '太空探索才刚刚开始！🛸';
+            
+            document.getElementById('praise-text').textContent = praise;
+        }
+        
+        // Download score card
+        function downloadScoreCard() {
+            // Create a canvas for the score card
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 800;
+            canvas.height = 600;
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, 600);
+            gradient.addColorStop(0, '#1e1b4b');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 800, 600);
+            
+            // Title
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🚀 探索太阳系 🌟', 400, 80);
+            
+            // Student info
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '32px Arial';
+            ctx.fillText(`学生：${studentName}`, 400, 150);
+            ctx.fillText(`班级：${studentClass}`, 400, 200);
+            
+            // Score
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = 'bold 72px Arial';
+            ctx.fillText(`${score}/10`, 400, 300);
+            
+            // Stars
+            ctx.font = '48px Arial';
+            const stars = score >= 9 ? '⭐⭐⭐⭐⭐' : score >= 7 ? '⭐⭐⭐⭐☆' : score >= 5 ? '⭐⭐⭐☆☆' : score >= 3 ? '⭐⭐☆☆☆' : '⭐☆☆☆☆';
+            ctx.fillText(stars, 400, 380);
+            
+            // Praise
+            ctx.fillStyle = '#10b981';
+            ctx.font = 'bold 28px Arial';
+            const praise = score >= 9 ? '你是超级太空专家！' : score >= 7 ? '你是小小太空专家！' : score >= 5 ? '你对太阳系很了解！' : score >= 3 ? '继续探索太空的奥秘！' : '太空探索才刚刚开始！';
+            ctx.fillText(praise, 400, 450);
+            
+            // Date
+            ctx.fillStyle = '#9ca3af';
+            ctx.font = '20px Arial';
+            ctx.fillText(`完成时间：${new Date().toLocaleDateString('zh-CN')}`, 400, 520);
+            
+            // Download
+            const link = document.createElement('a');
+            link.download = `探索太阳系_${studentName}_${studentClass}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg');
+            link.click();
+        }
+        
+        // Restart game
+        function restartGame() {
+            currentQuestion = 0;
+            score = 0;
+            selectedMatches = [];
+            
+            document.getElementById('results-page').classList.add('hidden');
+            document.getElementById('welcome-page').classList.remove('hidden');
+        }
+        
+        // Initialize
+        createStars();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9662b0af82436e6b',t:'MTc1MzY4ODAyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

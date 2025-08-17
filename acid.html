@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>酸与碱互动游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .game-container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Removed position: relative; as screens are no longer absolutely positioned */
+            /* Removed overflow: hidden; to prevent content clipping */
+            min-height: 60vh; /* Added min-height to ensure a good initial size */
+        }
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        .question-box {
+            background-color: #e0f2f7;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            width: 100%;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #2c5282;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+        .option-button {
+            background-color: #a7d9f7;
+            color: #2d3748;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #a7d9f7;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .option-button:hover {
+            background-color: #8acfe8;
+            border-color: #8acfe8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        .option-button.selected {
+            background-color: #4299e1;
+            color: white;
+            border-color: #4299e1;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        }
+        .option-button.correct {
+            background-color: #48bb78;
+            color: white;
+            border-color: #48bb78;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        }
+        .option-button.incorrect {
+            background-color: #ef4444;
+            color: white;
+            border-color: #ef4444;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        }
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .nav-button {
+            background-color: #63b3ed;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+        .nav-button:hover {
+            background-color: #4299e1;
+            transform: translateY(-1px);
+        }
+        .nav-button:disabled {
+            background-color: #cbd5e0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .start-screen, .score-screen, .input-screen {
+            /* Removed absolute positioning to allow natural flow */
+            /* position: absolute; */
+            /* top: 0; */
+            /* left: 0; */
+            /* height: 100%; */
+            background-color: rgba(255, 255, 255, 0.95);
+            display: flex; /* Will be toggled to 'none' when hidden */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+            /* z-index: 10; */
+            padding: 20px;
+            box-sizing: border-box;
+            flex-grow: 1; /* Allows these screens to take up available space within game-container */
+            width: 100%; /* Ensures they fill the width of the game-container */
+        }
+        /* Explicitly hide elements when not active */
+        .hidden {
+            display: none !important;
+        }
+        .input-screen input {
+            padding: 12px 15px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            width: 80%;
+            max-width: 300px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        .input-screen input:focus {
+            outline: none;
+            border-color: #63b3ed;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            text-align: center;
+            min-width: 300px;
+            max-width: 90%;
+            display: none; /* Hidden by default */
+            border: 2px solid #4299e1;
+        }
+        .message-box p {
+            font-size: 1.2rem;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+        .message-box button {
+            background-color: #4299e1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        .message-box button:hover {
+            background-color: #3182ce;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none; /* Hidden by default */
+        }
+        .speaker-button {
+            background-color: #4299e1;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .speaker-button:hover {
+            background-color: #3182ce;
+        }
+        .speaker-button svg {
+            margin-right: 5px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .question-box {
+                font-size: 1.1rem;
+                padding: 20px;
+                min-height: 100px;
+            }
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            .option-button {
+                font-size: 1rem;
+                padding: 12px 15px;
+            }
+            .nav-button {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+            .start-screen h2, .input-screen h2 {
+                font-size: 1.8rem;
+            }
+            .start-screen p {
+                font-size: 1rem;
+            }
+            .score-screen h2 {
+                font-size: 2rem;
+            }
+            .score-screen p {
+                font-size: 1.2rem;
+            }
+            .score-card h3 {
+                font-size: 1.5rem;
+            }
+            .score-card p {
+                font-size: 1rem;
+            }
+            .score-card .score-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Input Screen -->
+        <div id="input-screen" class="input-screen">
+            <h2>欢迎来到酸与碱小测验！</h2>
+            <p>请在开始游戏前输入您的姓名和班级。</p>
+            <input type="text" id="student-name" placeholder="请输入您的姓名" class="mb-4">
+            <input type="text" id="student-class" placeholder="请输入您的班级" class="mb-6">
+            <button id="start-game-button" class="nav-button">开始游戏</button>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="start-screen hidden">
+            <h2>欢迎来到酸与碱小测验！</h2>
+            <p>本游戏将测试您对酸性、碱性和中性物质的理解。您将有10道题目，每道题只有一次作答机会。祝您好运！</p>
+            <button id="begin-quiz-button" class="nav-button">开始测验</button>
+        </div>
+
+        <!-- Game Interface -->
+        <div id="game-interface" class="hidden w-full flex flex-col items-center">
+            <div class="header">
+                <h1 id="game-title">酸与碱小测验</h1>
+                <div class="flex items-center space-x-4">
+                    <span id="question-counter" class="text-lg font-semibold text-gray-700">问题 1/10</span>
+                    <button id="speaker-button" class="speaker-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volume-2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M22.36 1.64a15 15 0 0 1 0 20.72"/></svg>
+                        朗读
+                    </button>
+                </div>
+            </div>
+
+            <div id="question-box" class="question-box">
+                <!-- Question will be loaded here -->
+            </div>
+
+            <div id="options-grid" class="options-grid">
+                <!-- Options will be loaded here -->
+            </div>
+
+            <div class="navigation-buttons">
+                <button id="next-button" class="nav-button w-full" disabled>下一题</button>
+            </div>
+        </div>
+
+        <!-- Score Screen -->
+        <div id="score-screen" class="score-screen hidden">
+            <h2>测验结束！</h2>
+            <p>您的最终得分是：</p>
+            <div class="score-card">
+                <h3>酸与碱小测验分数卡</h3>
+                <p>姓名: <span id="final-name"></span></p>
+                <p>班级: <span id="final-class"></span></p>
+                <p>得分: <span id="final-score" class="score-value"></span> / 100</p>
+            </div>
+            <button id="download-scorecard-button" class="nav-button mt-6">下载分数卡</button>
+            <button id="restart-game-button" class="nav-button mt-4 bg-gray-500 hover:bg-gray-600">重新开始</button>
+        </div>
+
+        <!-- Message Box -->
+        <div id="message-box" class="message-box hidden">
+            <p id="message-text"></p>
+            <button id="message-ok-button">确定</button>
+        </div>
+        <div id="overlay" class="overlay hidden"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        // 游戏数据和状态
+        let studentName = '';
+        let studentClass = '';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedQuestions = [];
+        let hasAnsweredCurrentQuestion = false;
+        let speechSynthesis = window.speechSynthesis;
+        let utterance = null;
+
+        // 题目数据
+        const allQuestions = [
+            // 容易 (50% - 10 题)
+            {
+                question: "以下哪种物质是酸性的？",
+                options: ["肥皂水", "柠檬汁", "食盐水", "洗衣液"],
+                answer: "柠檬汁",
+                difficulty: "easy"
+            },
+            {
+                question: "以下哪种物质是碱性的？",
+                options: ["醋", "橙汁", "漂白剂", "白开水"],
+                answer: "漂白剂",
+                difficulty: "easy"
+            },
+            {
+                question: "石蕊试纸遇到酸性物质会变成什么颜色？",
+                options: ["蓝色", "红色", "绿色", "黄色"],
+                answer: "红色",
+                difficulty: "easy"
+            },
+            {
+                question: "石蕊试纸遇到碱性物质会变成什么颜色？",
+                options: ["红色", "蓝色", "紫色", "橙色"],
+                answer: "蓝色",
+                difficulty: "easy"
+            },
+            {
+                question: "以下哪种物质是中性的？",
+                options: ["汽水", "肥皂", "纯净水", "柠檬"],
+                answer: "纯净水",
+                difficulty: "easy"
+            },
+            {
+                question: "当我们尝到酸性物质时，通常会感到什么味道？",
+                options: ["苦涩", "甜", "酸", "咸"],
+                answer: "酸",
+                difficulty: "easy"
+            },
+            {
+                question: "当我们触摸碱性物质时，通常会感到什么触感？",
+                options: ["黏滑", "粗糙", "干燥", "油腻"],
+                answer: "黏滑",
+                difficulty: "easy"
+            },
+            {
+                question: "小明用石蕊试纸测试了一种液体，试纸变成了红色。这种液体可能是？",
+                options: ["肥皂水", "牛奶", "醋", "自来水"],
+                answer: "醋",
+                difficulty: "easy"
+            },
+            {
+                question: "以下哪种水果通常是酸性的？",
+                options: ["香蕉", "苹果", "葡萄", "橙"],
+                answer: "橙",
+                difficulty: "easy"
+            },
+            {
+                question: "以下哪种清洁用品通常是碱性的？",
+                options: ["洗碗液", "玻璃清洁剂", "柠檬酸清洁剂", "醋"],
+                answer: "洗碗液",
+                difficulty: "easy"
+            },
+            // 中等 (30% - 6 题)
+            {
+                question: "如果一种液体不能改变红色石蕊试纸和蓝色石蕊试纸的颜色，那么它最可能是？",
+                options: ["酸性", "碱性", "中性", "以上皆是"],
+                answer: "中性",
+                difficulty: "medium"
+            },
+            {
+                question: "为什么我们不能通过味觉或触觉来测试所有物质的酸碱性？",
+                options: ["因为它们都太酸了", "因为有些物质有毒或腐蚀性", "因为味道不准确", "因为触感不明显"],
+                answer: "因为有些物质有毒或腐蚀性",
+                difficulty: "medium"
+            },
+            {
+                question: "除了石蕊试纸，你还知道哪些可以测试酸碱性的材料？",
+                options: ["温度计", "PH计", "放大镜", "尺子"],
+                answer: "PH计",
+                difficulty: "medium"
+            },
+            {
+                question: "以下哪组物质，第一种是酸性，第二种是碱性？",
+                options: ["牛奶和水", "柠檬汁和肥皂水", "醋和橙汁", "漂白剂和纯净水"],
+                answer: "柠檬汁和肥皂水",
+                difficulty: "medium"
+            },
+            {
+                question: "一个学生在实验室里，不小心把一种无色液体溅到了手上，感觉滑滑的。他应该如何处理？",
+                options: ["用纸巾擦干", "立即用大量清水冲洗", "用肥皂洗手", "等待自然风干"],
+                answer: "立即用大量清水冲洗",
+                difficulty: "medium"
+            },
+            {
+                question: "为什么在进行酸碱性测试时，我们需要小心处理实验材料？",
+                options: ["为了让实验看起来更专业", "为了避免浪费材料", "为了保护我们的安全", "为了让结果更准确"],
+                answer: "为了保护我们的安全",
+                difficulty: "medium"
+            },
+            // 困难 (20% - 4 题)
+            {
+                question: "小红用紫色卷心菜汁测试了三种液体：A液体使卷心菜汁变红，B液体使卷心菜汁变绿，C液体没有改变颜色。请判断A、B、C液体的酸碱性。",
+                options: ["A酸性，B碱性，C中性", "A碱性，B酸性，C中性", "A中性，B酸性，C碱性", "A酸性，B中性，C碱性"],
+                answer: "A酸性，B碱性，C中性",
+                difficulty: "hard"
+            },
+            {
+                question: "如果一个物质是酸性的，那么它在日常生活中可能有什么用途？",
+                options: ["作为清洁剂去除油污", "作为食物防腐剂", "作为药物治疗胃酸过多", "以上都是"],
+                answer: "作为食物防腐剂", // 柠檬酸等常用作防腐剂
+                difficulty: "hard"
+            },
+            {
+                question: "为什么有些植物的花朵颜色会因为土壤的酸碱性而改变？",
+                options: ["植物会吸收土壤中的色素", "土壤酸碱性会影响花朵色素的形成", "这是植物的自我保护机制", "以上都不是"],
+                answer: "土壤酸碱性会影响花朵色素的形成",
+                difficulty: "hard"
+            },
+            {
+                question: "你如何设计一个简单的实验，探索除了石蕊试纸之外，还有哪些日常材料可以用来测试酸碱性？请列出至少两种材料和你的实验步骤。",
+                options: ["用盐水和糖水测试", "用茶水和果汁测试", "用红萝卜汁和葡萄汁测试", "用紫色卷心菜汁和蝶豆花汁测试，观察颜色变化"],
+                answer: "用紫色卷心菜汁和蝶豆花汁测试，观察颜色变化", // 开放性问题，但提供一个具体且正确的例子
+                difficulty: "hard"
+            }
+        ];
+
+        // 获取DOM元素
+        const inputScreen = document.getElementById('input-screen');
+        const studentNameInput = document.getElementById('student-name');
+        const studentClassInput = document.getElementById('student-class');
+        const startGameButton = document.getElementById('start-game-button');
+        const startScreen = document.getElementById('start-screen');
+        const beginQuizButton = document.getElementById('begin-quiz-button');
+        const gameInterface = document.getElementById('game-interface');
+        const questionCounter = document.getElementById('question-counter');
+        const questionBox = document.getElementById('question-box');
+        const optionsGrid = document.getElementById('options-grid');
+        const nextButton = document.getElementById('next-button');
+        const scoreScreen = document.getElementById('score-screen');
+        const finalNameSpan = document.getElementById('final-name');
+        const finalClassSpan = document.getElementById('final-class');
+        const finalScoreSpan = document.getElementById('final-score');
+        const downloadScorecardButton = document.getElementById('download-scorecard-button');
+        const restartGameButton = document.getElementById('restart-game-button');
+        const speakerButton = document.getElementById('speaker-button');
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const messageOkButton = document.getElementById('message-ok-button');
+        const overlay = document.getElementById('overlay');
+
+        // 辅助函数：显示消息框
+        function showMessage(message) {
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            overlay.classList.remove('hidden');
+        }
+
+        // 辅助函数：隐藏消息框
+        function hideMessageBox() {
+            messageBox.classList.add('hidden');
+            overlay.classList.add('hidden');
+        }
+
+        // 辅助函数：随机打乱数组
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 辅助函数：根据布鲁姆分类法选择题目
+        function selectQuestionsByBloomTaxonomy(allQ) {
+            const easyQuestions = allQ.filter(q => q.difficulty === 'easy');
+            const mediumQuestions = allQ.filter(q => q.difficulty === 'medium');
+            const hardQuestions = allQ.filter(q => q.difficulty === 'hard');
+
+            const selected = [];
+
+            // 50% 容易 (5题)
+            selected.push(...shuffleArray(easyQuestions).slice(0, 5));
+            // 30% 中等 (3题)
+            selected.push(...shuffleArray(mediumQuestions).slice(0, 3));
+            // 20% 困难 (2题)
+            selected.push(...shuffleArray(hardQuestions).slice(0, 2));
+
+            return shuffleArray(selected); // 再次打乱以避免顺序重复
+        }
+
+        // 加载问题
+        function loadQuestion() {
+            if (currentQuestionIndex >= selectedQuestions.length) {
+                endGame();
+                return;
+            }
+
+            const questionData = selectedQuestions[currentQuestionIndex];
+            questionBox.textContent = questionData.question;
+            optionsGrid.innerHTML = '';
+            hasAnsweredCurrentQuestion = false;
+            nextButton.disabled = true;
+            questionCounter.textContent = `问题 ${currentQuestionIndex + 1}/${selectedQuestions.length}`;
+
+            // 停止当前朗读
+            if (utterance) {
+                speechSynthesis.cancel();
+            }
+
+            // 朗读问题
+            speakText(questionData.question);
+
+            const shuffledOptions = shuffleArray([...questionData.options]); // 打乱选项
+
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-button');
+                button.addEventListener('click', () => selectOption(button, option, questionData.answer));
+                optionsGrid.appendChild(button);
+            });
+        }
+
+        // 选择选项
+        function selectOption(selectedButton, selectedAnswer, correctAnswer) {
+            if (hasAnsweredCurrentQuestion) {
+                showMessage("您已经回答过这道题了！");
+                return;
+            }
+
+            hasAnsweredCurrentQuestion = true;
+            nextButton.disabled = false;
+
+            // 禁用所有选项按钮
+            Array.from(optionsGrid.children).forEach(button => {
+                button.disabled = true;
+            });
+
+            if (selectedAnswer === correctAnswer) {
+                selectedButton.classList.add('correct');
+                score += 10; // 每题10分，共10题，总分100
+                speakText("回答正确！");
+            } else {
+                selectedButton.classList.add('incorrect');
+                // 找出正确答案并标记
+                Array.from(optionsGrid.children).forEach(button => {
+                    if (button.textContent === correctAnswer) {
+                        button.classList.add('correct');
+                    }
+                });
+                speakText("回答错误。");
+            }
+        }
+
+        // 下一题
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < selectedQuestions.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        // 结束游戏
+        function endGame() {
+            gameInterface.classList.add('hidden');
+            scoreScreen.classList.remove('hidden');
+            finalNameSpan.textContent = studentName;
+            finalClassSpan.textContent = studentClass;
+            finalScoreSpan.textContent = score;
+
+            // 停止当前朗读
+            if (utterance) {
+                speechSynthesis.cancel();
+            }
+            speakText(`测验结束！${studentName}，您的最终得分是 ${score} 分。`);
+        }
+
+        // 语音朗读功能
+        function speakText(text) {
+            if (speechSynthesis.speaking && utterance) {
+                speechSynthesis.cancel(); // 取消之前的朗读
+            }
+            utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN'; // 设置语言为中文
+            speechSynthesis.speak(utterance);
+        }
+
+        // 事件监听器
+        startGameButton.addEventListener('click', () => {
+            studentName = studentNameInput.value.trim();
+            studentClass = studentClassInput.value.trim();
+
+            if (studentName === '' || studentClass === '') {
+                showMessage("请输入您的姓名和班级才能开始游戏！");
+            } else {
+                inputScreen.classList.add('hidden');
+                startScreen.classList.remove('hidden');
+            }
+        });
+
+        beginQuizButton.addEventListener('click', () => {
+            startScreen.classList.add('hidden');
+            gameInterface.classList.remove('hidden');
+            currentQuestionIndex = 0;
+            score = 0;
+            selectedQuestions = selectQuestionsByBloomTaxonomy(allQuestions);
+            loadQuestion();
+        });
+
+        nextButton.addEventListener('click', nextQuestion);
+
+        speakerButton.addEventListener('click', () => {
+            if (utterance) {
+                speechSynthesis.cancel(); // 停止当前朗读
+            }
+            speakText(questionBox.textContent);
+        });
+
+        messageOkButton.addEventListener('click', hideMessageBox);
+
+        downloadScorecardButton.addEventListener('click', () => {
+            const scorecard = document.querySelector('.score-card');
+            html2canvas(scorecard, {
+                scale: 2, // 提高分辨率
+                backgroundColor: '#f7fafc', // 确保背景色正确
+                useCORS: true // 允许加载跨域图片，尽管这里没有
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `酸与碱小测验分数卡-${studentName}-${studentClass}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.9); // 0.9 是质量
+                link.click();
+            }).catch(error => {
+                console.error("生成分数卡失败:", error);
+                showMessage("生成分数卡时出现问题，请稍后再试。");
+            });
+        });
+
+        restartGameButton.addEventListener('click', () => {
+            scoreScreen.classList.add('hidden');
+            inputScreen.classList.remove('hidden');
+            studentNameInput.value = '';
+            studentClassInput.value = '';
+        });
+
+        // 初始化
+        window.onload = () => {
+            // 确保页面加载完成后再显示输入界面
+            inputScreen.classList.remove('hidden');
+        };
+    </script>
+</body>
+</html>
